@@ -47,19 +47,25 @@ class Level():
         for sprite in self.sprites:
             self.screen.blit(sprite.image, sprite.position)
     
+class Timer():
+    def __init__(self):
+        self.startTime = 0
+
+    def start(self):
+        self.startTime = pygame.time.get_ticks()
+    
+    def restart(self): #This is the same as start, but allows for easier reading of code in the main file
+        self.startTime = pygame.time.get_ticks()
+
+    def time(self):
+        return (pygame.time.get_ticks() - self.startTime)/1000
+    
 class Game():
     def __init__(self, startingLevel):
         self.currentLevel = startingLevel
     
-    def switchTo(self, level):
+    def setLevel(self, level):
         self.currentLevel = level
     
     def run(self):
         self.currentLevel.display()
-        self.currentLevel.input()
-
-    def display(self):
-        self.currentLevel.display()
-
-    def process(self, events):
-        pass
