@@ -1,12 +1,27 @@
 import pygame
 import pygame.math
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT, GAME_NAME, NAME
+class MouseProjectile(pygame.sprite.Sprite):
+    def __init__(self, image, x, y, speed):
+        pygame.sprite.Sprite.__init__(self)
+        self.speed = speed
+        self.image = pygame.image.load("./images/"+image).convert_alpha()
+        self.position = pygame.math.Vector2(x,y)
+        xpos,ypos = pygame.mouse.get_pos()
+        self.direction = (pygame.math.Vector2(xpos, ypos) - self.position).normalize()
+        self.rect = self.image.get_rect()
+        
+    def set_speed(self, speed):
+        self.speed = speed
+
+    def move(self):
+        velocity = self.direction * self.speed
+        self.position += velocity
+
 class Projectile(pygame.sprite.Sprite):
     '''TODO Projectile Class'''
-    def __init__(self, position, direction):
-        pygame.sprite.Sprite.__init__(self)        
-        self.position = position
-        self.direction = direction
+    def __init__(self, source, direction):
+        pass
 
 class Block(pygame.sprite.Sprite):
     '''Debugging Block Class'''
@@ -62,9 +77,13 @@ class Level():
         self.sprites = pygame.sprite.Group()
         self.background = pygame.image.load("./images/"+background).convert()
         self.background = pygame.transform.scale(self.background, (SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.projectiles = []
         self.screen = screen
         for sprite in sprites:
             self.sprites.add(sprite)
+
+    def addProjectile(self, p):
+        self.projectiles.append(p)
 
     def display(self): 
         #Display this levels background
@@ -72,7 +91,16 @@ class Level():
         #Display every sprite at its own position
         for sprite in self.sprites:
             self.screen.blit(sprite.image, sprite.position)
-    
+        for p in self.projectiles:
+            p.move()
+            self.screen.blit(p.image, p.position)
+            if p.position.x> SCREEN_WIDTH or p.position.x < -p.rect.width:
+                print("removed")
+                self.projectiles.remove(p)
+            if p.position.y > SCREEN_HEIGHT or p.position.y < -p.rect.height:
+                print("removed")
+                self.projectiles.remove(p)
+
 class Timer():
     def __init__(self):
         self.startTime = 0

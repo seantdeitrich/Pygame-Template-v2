@@ -22,6 +22,7 @@ WHITE = (255, 255, 255)
 #----------------------------------------------------------------------------
 # ▼▼▼ DO NOT ADJUST THIS CODE ▼▼▼ 
 #----------------------------------------------------------------------------
+projectiles = []
 pygame.init()
 pygame.key.set_repeat() #Controls how held keys are repeated (delay, interval) -- See PyGame docs
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.SCALED, vsync=1)
@@ -36,7 +37,7 @@ clock = pygame.time.Clock()
 #----------------------------------------------------------------------------
 #This creates a text box, but you'll have to display it in the level you want
 
-titleText = Text(screen, "Title Screen", BLACK, 30,100,100)
+titleText = Text(screen, "PyGame Template by: " + NAME, BLACK, 30,100,100)
 
 #----------------------------------------------------------------------------
 # Create Backgrounds Here
@@ -46,8 +47,8 @@ level1Background = "landscape.jpg"
 #----------------------------------------------------------------------------
 # Create Objects, Characters, Enemies, etc. Here
 #----------------------------------------------------------------------------
-redblock = Block(RED, 100, 100, 100, 100)#Color, Width, Height, X Location, Y Location
-redblock.set_speed(10) #Set the speed of the red block when we control it
+player = Block(RED, 100, 100, 100, 100)#Color, Width, Height, X Location, Y Location
+player.set_speed(5) #Set the speed of the red block when we control it
 
 greenblock = Block(GREEN, 100, 100, 150, 100)
 blueblock = Block(BLUE, 100, 100, 200, 100)
@@ -62,7 +63,7 @@ titleSprites = []
 #Step 2. Create the Level itself
 titleScreen = Level(screen, titleScreenBackground, titleSprites)
 #Here's another example
-level1Sprites = [redblock, greenblock, blueblock]
+level1Sprites = [player, greenblock, blueblock]
 level1 = Level(screen, level1Background, level1Sprites)
 
 #----------------------------------------------------------------------------
@@ -104,10 +105,11 @@ def level1Controls(keys_pressed):
         checkQuit(event) #Check to see if the user quit the game, should be in every level
         if event.type == pygame.KEYDOWN: #When any key is pressed down
             if event.key == pygame.K_SPACE: #If it was the space key
-                print("Hit Space in Level 1: " + str(timer.time())) #Print that we hit space in level 1 and the time on the timer
+                p = MouseProjectile("laser.png", player.position.x, player.position.y, 5)
+                level1.addProjectile(p) #Add the projectile to level 1's sprites
             if event.key == pygame.K_t:
                 timer.restart()
-        
+    
     #This method is used to check to see when keys are HELD
     if keys_pressed[pygame.K_d]:
         direction.x = 1
@@ -119,7 +121,7 @@ def level1Controls(keys_pressed):
         direction.y = 1
 
     #Enable movement for the block (player)
-    redblock.move(direction)
+    player.move(direction)
 
 #----------------------------------------------------------------------------
 # ▼▼▼ DO NOT ADJUST THIS CODE ▼▼▼ 
