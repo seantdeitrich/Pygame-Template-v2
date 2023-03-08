@@ -101,15 +101,20 @@ class Level():
         self.background = pygame.image.load("./images/"+background).convert()
         self.background = pygame.transform.scale(self.background, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.projectiles = []
+        self.texts = []
         self.screen = screen
         self.cameraEnabled = False
         for sprite in sprites:
             self.sprites.add(sprite)
-    
+
     def enableCamera(self):
         self.cameraEnabled = True
+
     def disableCamera(self):
         self.cameraEnabled = False
+
+    def addText(self, text):
+        self.texts.append(text)
 
     def addSprite(self, sprite):
         self.sprites.add(sprite)
@@ -122,6 +127,8 @@ class Level():
         #Display this levels background
         self.screen.blit(self.background, (0,0))
         #Display every sprite at its own position
+        for text in self.texts:
+            text.display()
         for sprite in self.sprites:
             self.screen.blit(sprite.image, sprite.position)
         for p in self.projectiles:
