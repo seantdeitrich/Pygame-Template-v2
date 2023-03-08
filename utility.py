@@ -18,7 +18,7 @@ class Block(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.speed = 10
     
-    def set_speed(self, speed)
+    def set_speed(self, speed):
         self.speed = speed
 
     def set_position(self, x, y):
