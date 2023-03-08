@@ -60,7 +60,6 @@ blueblock = Block(BLUE, 100, 100, 200, 100)
 titleScreen = Level(screen, titleScreenBackground)
 #Here's another example
 level1 = Level(screen, level1Background)
-
 #Then add Characters, Enemies, etc. to the level! The order matters.
 #What you add first will be the furthest 'back'.
 #What you add last will be the closes to the 'front'.
@@ -69,7 +68,7 @@ level1.addSprite(greenblock)
 level1.addSprite(blueblock)
 
 #----------------------------------------------------------------------------
-# Create Timers Here
+# Create Additional Timers Here (usually only one is needed)
 #----------------------------------------------------------------------------
 timer = Timer()
 

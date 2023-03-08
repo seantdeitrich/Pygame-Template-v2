@@ -1,4 +1,5 @@
 import pygame
+import math
 import pygame.math
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT, GAME_NAME, NAME
 class Text():
@@ -48,6 +49,8 @@ class MouseProjectile(pygame.sprite.Sprite):
         xpos,ypos = pygame.mouse.get_pos()
         self.direction = (pygame.math.Vector2(xpos, ypos) - self.position).normalize()
         self.rect = self.image.get_rect()
+        #Rotates the projectile towards it's direction
+        self.image = pygame.transform.rotate(self.image, -1*math.degrees(math.atan2(self.direction.y, self.direction.x)))
     
     def set_speed(self, speed):
         self.speed = speed
@@ -99,9 +102,15 @@ class Level():
         self.background = pygame.transform.scale(self.background, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.projectiles = []
         self.screen = screen
+        self.cameraEnabled = False
         for sprite in sprites:
             self.sprites.add(sprite)
     
+    def enableCamera(self):
+        self.cameraEnabled = True
+    def disableCamera(self):
+        self.cameraEnabled = False
+
     def addSprite(self, sprite):
         self.sprites.add(sprite)
 
@@ -109,6 +118,7 @@ class Level():
         self.projectiles.append(p)
 
     def display(self): 
+        #TODO add in camera logic based
         #Display this levels background
         self.screen.blit(self.background, (0,0))
         #Display every sprite at its own position
