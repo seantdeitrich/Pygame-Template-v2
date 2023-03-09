@@ -19,7 +19,6 @@ from utility import *
 #----------------------------------------------------------------------------
 #The three numbers in the parens are the red, green, and blue values
 #They are always on a scale of 0 to 255. Google "Color Picker"!
-
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
@@ -56,11 +55,11 @@ level1Background = "landscape.jpg"
 #----------------------------------------------------------------------------
 # Create Objects, Characters, Enemies, etc. Here
 #----------------------------------------------------------------------------
-player = Block(RED, 100, 100, 100, 100)#Color, Width, Height, X Location, Y Location
+player = Character("frog.png", (100,100), (100,100))#Color, Width, Height, X Location, Y Location
 player.set_speed(5) #Set the speed of the red block when we control it
-
-greenblock = Block(GREEN, 100, 100, 150, 100)
-blueblock = Block(BLUE, 100, 100, 200, 100)
+ 
+#greenblock = Block("frog.png", 100, 100, 150, 100)
+#blueblock = Block("frog.png", 100, 100, 200, 100)
 
 #----------------------------------------------------------------------------
 # Create Levels Here
@@ -75,8 +74,8 @@ level1 = Level(screen, level1Background)
 #What you add first will be the furthest 'back'.
 #What you add last will be the closes to the 'front'.
 level1.addSprite(player)
-level1.addSprite(greenblock)
-level1.addSprite(blueblock)
+#level1.addSprite(greenblock)
+#level1.addSprite(blueblock)
 #----------------------------------------------------------------------------
 # Create Additional Timers Here (usually only one is needed)
 #----------------------------------------------------------------------------
@@ -115,10 +114,9 @@ def level1Controls(keys_pressed):
         checkQuit(event) #Check to see if the user quit the game, should be in every level
         if event.type == pygame.KEYDOWN: #When any key is pressed down
             if event.key == pygame.K_SPACE: #If it was the space key
-                p = MouseProjectile("laser.png", player.position.x, player.position.y, 5)
-                level1.addProjectile(p) #Add the projectile to level 1's sprites
-            if event.key == pygame.K_t:
-                timer.restart()
+                newProjectile = MouseProjectile("laser.png", player.center, 10) #image, position, speed
+                level1.addProjectile(newProjectile) #Add the projectile to level 1's sprites
+          
 
     #This method is used to check to see when keys are HELD
     if keys_pressed[pygame.K_d]:
@@ -130,11 +128,9 @@ def level1Controls(keys_pressed):
     if keys_pressed[pygame.K_s]:
         direction.y = 1
 
-
     #Enable movement for the block (player)
     player.move(direction)
-
-
+    
 #----------------------------------------------------------------------------
 # ▼▼▼ DO NOT ADJUST THIS CODE ▼▼▼ 
 #----------------------------------------------------------------------------

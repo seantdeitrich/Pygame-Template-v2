@@ -37,15 +37,15 @@ class Timer():
 
 class Projectile(pygame.sprite.Sprite):
     '''TODO Projectile Class'''
-    def __init__(self, image, x, y, speed):
+    def __init__(self, image, position, speed):
         pass
 
 class MouseProjectile(pygame.sprite.Sprite):
-    def __init__(self, image, x, y, speed):
+    def __init__(self, image, position, speed):
         pygame.sprite.Sprite.__init__(self)
         self.speed = speed
         self.image = pygame.image.load("./images/"+image).convert_alpha()
-        self.position = pygame.math.Vector2(x,y)
+        self.position = pygame.math.Vector2(position[0],position[1])
         xpos,ypos = pygame.mouse.get_pos()
         self.direction = (pygame.math.Vector2(xpos, ypos) - self.position).normalize()
         self.rect = self.image.get_rect()
@@ -58,40 +58,51 @@ class MouseProjectile(pygame.sprite.Sprite):
     def move(self):
         velocity = self.direction * self.speed
         self.position += velocity
-
-class Block(pygame.sprite.Sprite):
-    '''Debugging Block Class'''
-    def __init__(self, color, width, height, x=0, y=0):
+        
+class Character(pygame.sprite.Sprite):
+    '''A class for characters in your game'''
+    def __init__(self, image, size, position):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.Surface([width, height])
-        self.image.fill(color)
-        self.position = pygame.math.Vector2(x,y)
+        self.image = pygame.image.load("./images/"+image).convert_alpha()
+        self.image = pygame.transform.scale(self.image, size)
+        self.position = pygame.math.Vector2(position[0],position[1])
         self.rect = self.image.get_rect()
         self.speed = 10
-    
+        self.size = size
+        #Accessible positions on the Character
+        self.__update_positions()
+
     def set_speed(self, speed):
         self.speed = speed
 
     def set_position(self, x, y):
         self.position = pygame.math.Vector2(x,y)
-        self.rect = self.image.get_rect()
-    
+        self.__update_positions()
+
     def move(self, direction):
         if direction.length() != 0:
             direction = direction.normalize()
             velocity = direction * self.speed
             self.position += velocity
-
-class Character(pygame.sprite.Sprite):
-    '''A class for each character in your game'''
-    def __init__(self, image, x=0, y=0):
-        pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load("./images/"+image).convert_alpha()
-        self.position = (x,y)
-        self.rect = self.image.get_rect()
+        self.__update_positions()
+    
+    #Create easy positions for each character
+    def __update_positions(self):
+        self.rect = self.image.get_rect() #Update the hitbox/rect when the player moves (might not be needed)
+        self.center = pygame.math.Vector2(self.position.x + self.rect.width/2, self.position.y + self.rect.height/2)
+        self.left = pygame.math.Vector2(self.position.x, self.position.y + self.rect.height/2)
+        self.right = pygame.math.Vector2(self.position.x + self.rect.width, self.position.y + self.rect.height/2)
+        self.top = pygame.math.Vector2(self.position.x + self.rect.width/2, self.position.y)
+        self.bottom = pygame.math.Vector2(self.position.x + self.rect.width/2, self.position.y + self.rect.height)
+        self.topleft = pygame.math.Vector2(self.position.x, self.position.y)
+        self.topright = pygame.math.Vector2(self.position.x + self.rect.width, self.position.y)
+        self.bottomleft = pygame.math.Vector2(self.position.x, self.position.y + self.rect.height)
+        self.bottomright = pygame.math.Vector2(self.position.x + self.rect.width, self.position.y + self.rect.height)
 
 class Camera():
+    '''Allows use of a camera within a level'''
     def __init__(self):
+        #TODO
         pass
 
 class Level():
@@ -137,7 +148,7 @@ class Level():
             #Remove the projectiles if they travel off screen
             if p.position.x> SCREEN_WIDTH or p.position.x < -p.rect.width:
                 self.projectiles.remove(p)
-            if p.position.y > SCREEN_HEIGHT or p.position.y < -p.rect.height:
+            elif p.position.y > SCREEN_HEIGHT or p.position.y < -p.rect.height:
                 self.projectiles.remove(p)
 
 class Game():
