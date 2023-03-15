@@ -39,6 +39,10 @@ clock = pygame.time.Clock()
 #----------------------------------------------------------------------------
 # ▲▲▲ DO NOT ADJUST THIS CODE ▲▲▲
 #----------------------------------------------------------------------------
+#----------------------------------------------------------------------------
+# Create Score Variables Here
+#----------------------------------------------------------------------------
+score = 0
 
 #----------------------------------------------------------------------------
 # Create Text Boxes Here
@@ -57,9 +61,9 @@ level1Background = "landscape.jpg"
 #----------------------------------------------------------------------------
 player = Character("frog.png", (100,100), (100,100))#Color, Width, Height, X Location, Y Location
 player.set_speed(5) #Set the speed of the red block when we control it
- 
-#greenblock = Block("frog.png", 100, 100, 150, 100)
-#blueblock = Block("frog.png", 100, 100, 200, 100)
+
+#TODO Enemy Example
+#TODO Item Example
 
 #----------------------------------------------------------------------------
 # Create Levels Here
@@ -73,9 +77,8 @@ level1 = Level(screen, level1Background)
 #Then add Characters, Enemies, etc. to the level! The order matters.
 #What you add first will be the furthest 'back'.
 #What you add last will be the closes to the 'front'.
-level1.addSprite(player)
-#level1.addSprite(greenblock)
-#level1.addSprite(blueblock)
+level1.add(player)
+
 #----------------------------------------------------------------------------
 # Create Additional Timers Here (usually only one is needed)
 #----------------------------------------------------------------------------

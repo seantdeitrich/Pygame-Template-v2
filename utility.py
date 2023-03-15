@@ -127,7 +127,7 @@ class Level():
     def addText(self, text):
         self.texts.append(text)
 
-    def addSprite(self, sprite):
+    def add(self, sprite):
         self.sprites.add(sprite)
 
     def addProjectile(self, p): #Simple method to add a projectile to the level
