@@ -59,9 +59,11 @@ level1Background = "landscape.jpg"
 #----------------------------------------------------------------------------
 # Create Objects, Characters, Enemies, etc. Here
 #----------------------------------------------------------------------------
-player = Character("frog.png", (100,100), (100,100))#Color, Width, Height, X Location, Y Location
-player.set_speed(5) #Set the speed of the red block when we control it
+player = Character("Hero.png", (100,100), (100,100)) #Image, (Width, Height), (X,Y)
+player.set_speed(5) #Set the speed of the character when we control it
 
+monster = Character("Monster.png", (100,100), (300,300))
+monster.set_speed(5)
 #TODO Enemy Example
 #TODO Item Example
 
@@ -78,9 +80,10 @@ level1 = Level(screen, level1Background)
 #What you add first will be the furthest 'back'.
 #What you add last will be the closes to the 'front'.
 level1.add(player)
+level1.add(monster)
 
 #----------------------------------------------------------------------------
-# Create Additional Timers Here (usually only one is needed)
+# Create Additional Timers Here if Needed
 #----------------------------------------------------------------------------
 timer = Timer()
 
@@ -112,14 +115,20 @@ def titleControls(keys_pressed):
 
 def level1Controls(keys_pressed):
     direction = pygame.math.Vector2() #Allows the player to have a direction
-    #This method is used to check if keys were JUST pressed
+
+    #----------------------------------------------------------------------------
+    # ▼▼▼ DO NOT ADJUST THIS CODE ▼▼▼ 
+    #----------------------------------------------------------------------------
     for event in pygame.event.get(): #Check to see whats happening in the game
         checkQuit(event) #Check to see if the user quit the game, should be in every level
         if event.type == pygame.KEYDOWN: #When any key is pressed down
+    #----------------------------------------------------------------------------
+    # ▲▲▲ DO NOT ADJUST THIS CODE ▲▲▲ 
+    #----------------------------------------------------------------------------
+            #Use this method when checking to see if a key was JUST pressed (not held)
             if event.key == pygame.K_SPACE: #If it was the space key
                 newProjectile = MouseProjectile("laser.png", player.center, 10) #image, position, speed
-                level1.addProjectile(newProjectile) #Add the projectile to level 1's sprites
-          
+                level1.addProjectile(newProjectile) #Add the projectile to level 1's sprites 
 
     #This method is used to check to see when keys are HELD
     if keys_pressed[pygame.K_d]:
@@ -133,6 +142,10 @@ def level1Controls(keys_pressed):
 
     #Enable movement for the block (player)
     player.move(direction)
+    
+    #Check for collision between the player and the monster
+    if player.collidesWith(monster):
+        print("Collision Occured")
     
 #----------------------------------------------------------------------------
 # ▼▼▼ DO NOT ADJUST THIS CODE ▼▼▼ 

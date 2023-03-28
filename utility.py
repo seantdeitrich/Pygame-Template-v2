@@ -80,15 +80,21 @@ class Character(pygame.sprite.Sprite):
         self.__update_positions()
 
     def move(self, direction):
-        if direction.length() != 0:
-            direction = direction.normalize()
-            velocity = direction * self.speed
-            self.position += velocity
-        self.__update_positions()
+        if direction.length() != 0: #If the player has a direction
+            direction = direction.normalize() #Normalize the direction
+            velocity = direction * self.speed #Multiply by speed
+            self.position += velocity #Shift the players position by the calculated velocity
+        self.__update_positions() #Anytime the character moves, update the rectangle and positions as well
     
+    def collidesWith(self, other):
+        #The collide mask function allows for pixel perfect collision without performance hits
+        return pygame.sprite.collide_mask(self, other)
+
     #Create easy positions for each character
     def __update_positions(self):
         self.rect = self.image.get_rect() #Update the hitbox/rect when the player moves (might not be needed)
+        self.rect.x = self.position.x
+        self.rect.y = self.position.y
         self.center = pygame.math.Vector2(self.position.x + self.rect.width/2, self.position.y + self.rect.height/2)
         self.left = pygame.math.Vector2(self.position.x, self.position.y + self.rect.height/2)
         self.right = pygame.math.Vector2(self.position.x + self.rect.width, self.position.y + self.rect.height/2)
