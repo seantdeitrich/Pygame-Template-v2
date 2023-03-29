@@ -47,8 +47,7 @@ score = 0
 #----------------------------------------------------------------------------
 # Create Text Boxes Here
 #----------------------------------------------------------------------------
-#This creates a text box, but you'll have to display it in the level you want
-
+#This creates a text box, but you'll have to add it to the level you want
 titleText = Text(screen, "PyGame Template by: " + NAME, BLACK, 30,100,100)
 
 #----------------------------------------------------------------------------
@@ -72,15 +71,16 @@ monster.set_speed(5)
 #----------------------------------------------------------------------------
 #Step 1. Create the Level itself
 titleScreen = Level(screen, titleScreenBackground)
-titleScreen.addText(titleText)
+titleScreen.addText(titleText) #Add text to it if you want
 
 #Here's another example
 level1 = Level(screen, level1Background)
 #Then add Characters, Enemies, etc. to the level! The order matters.
 #What you add first will be the furthest 'back'.
 #What you add last will be the closes to the 'front'.
-level1.add(player)
 level1.add(monster)
+level1.add(player)
+
 
 #----------------------------------------------------------------------------
 # Create Additional Timers Here if Needed
@@ -105,7 +105,7 @@ def checkQuit(event):
 #----------------------------------------------------------------------------
 # Create Controls and Logic for Each Level Here
 #----------------------------------------------------------------------------
-def titleControls(keys_pressed):
+def titleControls():
     for event in pygame.event.get(): #Check to see whats happening in the game
         checkQuit(event) #Check to see if the user quit the game, should be in every level
         if event.type == pygame.KEYDOWN: #When any key is pressed down
@@ -115,20 +115,15 @@ def titleControls(keys_pressed):
 
 def level1Controls(keys_pressed):
     direction = pygame.math.Vector2() #Allows the player to have a direction
-
-    #----------------------------------------------------------------------------
-    # ▼▼▼ DO NOT ADJUST THIS CODE ▼▼▼ 
-    #----------------------------------------------------------------------------
     for event in pygame.event.get(): #Check to see whats happening in the game
         checkQuit(event) #Check to see if the user quit the game, should be in every level
         if event.type == pygame.KEYDOWN: #When any key is pressed down
-    #----------------------------------------------------------------------------
-    # ▲▲▲ DO NOT ADJUST THIS CODE ▲▲▲ 
-    #----------------------------------------------------------------------------
-            #Use this method when checking to see if a key was JUST pressed (not held)
+            #----------------------------------------------------------------------------
+            # Check to see if keys were JUST pressed here (not held)
+            #----------------------------------------------------------------------------
             if event.key == pygame.K_SPACE: #If it was the space key
                 newProjectile = MouseProjectile("laser.png", player.center, 10) #image, position, speed
-                level1.addProjectile(newProjectile) #Add the projectile to level 1's sprites 
+                player.addProjectile(newProjectile) #Add the projectile to the player 
 
     #This method is used to check to see when keys are HELD
     if keys_pressed[pygame.K_d]:
@@ -145,7 +140,7 @@ def level1Controls(keys_pressed):
     
     #Check for collision between the player and the monster
     if player.collidesWith(monster):
-        print("Collision Occured")
+        print("Collision Detected")
     
 #----------------------------------------------------------------------------
 # ▼▼▼ DO NOT ADJUST THIS CODE ▼▼▼ 
@@ -162,7 +157,7 @@ while gameRunning: #While the game is running
 # Input Processing for Each Level Goes Here 
 #----------------------------------------------------------------------------
     if game.currentLevel == titleScreen:
-        titleControls(keys_pressed)
+        titleControls()
     elif game.currentLevel == level1:
         level1Controls(keys_pressed)
 
@@ -170,7 +165,9 @@ while gameRunning: #While the game is running
 # ▼▼▼ DO NOT ADJUST THIS CODE ▼▼▼ 
 #----------------------------------------------------------------------------
     pygame.display.update() #Update the display every frame
-
+#----------------------------------------------------------------------------
+# ▲▲▲ DO NOT ADJUST THIS CODE ▲▲▲
+#----------------------------------------------------------------------------
 #----------------------------------------------------------------------------
 # ▼▼▼ DO NOT WRITE CODE BELOW THIS LINE ▼▼▼ 
 #----------------------------------------------------------------------------
