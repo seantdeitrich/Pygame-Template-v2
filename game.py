@@ -51,6 +51,11 @@ score = 0
 titleText = Text(screen, "PyGame Template by: " + NAME, BLACK, 30,100,100)
 
 #----------------------------------------------------------------------------
+# Create Spritesheets and Animations here
+#----------------------------------------------------------------------------
+walking = Animation("walking.png", 1, 24) #Filename, Rows, Cols (You can add another number (1-60) to control the speed of the animation)
+walking.position = pygame.Vector2()
+#----------------------------------------------------------------------------
 # Create Sounds and Music Here
 #----------------------------------------------------------------------------
 #Make sure the wav or mp3 file is in the sounds folder!
@@ -66,6 +71,8 @@ level1Background = "landscape.jpg"
 #----------------------------------------------------------------------------
 player = Character("Hero.png", (100,100), (100,100)) #Image, (Width, Height), (X,Y)
 player.setSpeed(5) #Set the speed of the character when we control it
+player.addAnimation(walking)
+player.animated = True
 
 monster = Character("Monster.png", (100,100), (300,300))
 monster.setSpeed(5)
@@ -73,7 +80,7 @@ monster.setSpeed(5)
 #TODO Item Example
 
 #----------------------------------------------------------------------------
-# Create Levels Here
+# LEVELS: Create Levels Here
 #----------------------------------------------------------------------------
 #Step 1. Create the Level itself
 titleScreen = Level(screen, titleScreenBackground)
@@ -89,7 +96,7 @@ level1.add(player)
 
 
 #----------------------------------------------------------------------------
-# Create Additional Timers Here if Needed
+# TIMERS: Create Additional Timers Here if Needed
 #----------------------------------------------------------------------------
 timer = Timer()
 
@@ -109,7 +116,7 @@ def checkQuit(event):
 #----------------------------------------------------------------------------
 
 #----------------------------------------------------------------------------
-# Create Controls and Logic for Each Level Here
+# LEVEL CONTROLS: Create Controls and Logic for Each Level Here
 #----------------------------------------------------------------------------
 def titleControls():
     for event in pygame.event.get(): #Check to see whats happening in the game
@@ -124,7 +131,7 @@ def level1Controls(keys_pressed):
     for event in pygame.event.get(): #Check to see whats happening in the game
         checkQuit(event) #Check to see if the user quit the game, should be in every level
         #----------------------------------------------------------------------------
-        # Check to see if keys were JUST pressed here (not held)
+        # KEYS: Check to see if keys were JUST pressed here (not held)
         #----------------------------------------------------------------------------
         if event.type == pygame.KEYDOWN: #When any key is pressed down
             if event.key == pygame.K_SPACE: #If it was the space key
@@ -132,12 +139,15 @@ def level1Controls(keys_pressed):
                 player.addProjectile(newProjectile) #Add the projectile to the player 
                 laserSound.play() #Play the laser sound
         #----------------------------------------------------------------------------
-        # Check to see if things were clicked here!
+        # MOUSE: Check to see if things were clicked on here!
         #----------------------------------------------------------------------------
         if event.type == pygame.MOUSEBUTTONDOWN:
             if player.clicked():
                 print("Player was Clicked!")
 
+    #----------------------------------------------------------------------------
+    # KEYS: Check to see if keys are HELD here!
+    #----------------------------------------------------------------------------  
     #This method is used to check to see when keys are HELD
     if keys_pressed[pygame.K_d]:
         direction.x = 1

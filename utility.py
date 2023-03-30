@@ -18,6 +18,7 @@ class Text():
 class Timer():
     def __init__(self):
         self.startTime = 0
+        self.enabled = False
 
     def start(self):
         self.enabled = True
@@ -32,6 +33,11 @@ class Timer():
             return round((pygame.time.get_ticks() - self.startTime)/1000, 1)
         return 0
     
+    def timeInMilliseconds(self):
+        if self.enabled:
+            return pygame.time.get_ticks() - self.startTime
+        return 0
+    
     def stop(self):
         self.enabled = False
 
@@ -44,6 +50,7 @@ class MouseProjectile(pygame.sprite.Sprite):
     def __init__(self, image, position, speed):
         pygame.sprite.Sprite.__init__(self)
         self.speed = speed
+        #Surround in a try except to catch File Not Found
         self.image = pygame.image.load("./images/"+image).convert_alpha()
         self.position = pygame.math.Vector2(position[0],position[1])
         xpos,ypos = pygame.mouse.get_pos()
@@ -69,19 +76,30 @@ class Character(pygame.sprite.Sprite):
     '''A class for characters in your game'''
     def __init__(self, image, size, position):
         pygame.sprite.Sprite.__init__(self)
+        #Surround in a try except to catch File Not Found
         self.image = pygame.image.load("./images/"+image).convert_alpha()
-        self.image = pygame.transform.scale(self.image, size)
-        self.position = pygame.math.Vector2(position[0],position[1])
+        #
+        self.animated = False #Boolean for whether the character is animated or not
+        self.image = pygame.transform.scale(self.image, size) #Scaling to the given size
+        self.position = pygame.math.Vector2(position[0],position[1]) #Changing position into a vector
         self.mask = pygame.mask.from_surface(self.image) #Helps improve performance of mask collision, needs to be updated when scaled or on image change
-        self.rect = self.image.get_rect()
-        self.speed = 10
+        self.rect = self.image.get_rect() #Acquiring the rectangle around the character
+        self.speed = 10 #Speed variable
         self.size = size
         self.width = size[0]
         self.height = size[1]
-        self.projectiles = pygame.sprite.Group()
-        #Accessible positions on the Character
+        self.projectiles = pygame.sprite.Group() #Group to hold all projectiles belonging to this character
+        self.currentAnimation = 0 #Number to keep track of which animation is currently being used
+        self.animations = [] #Holds all the animations
+        #Update accessible positions on the Character
         self.__update_positions()
     
+    def addAnimation(self, animation):
+        self.animations.append(animation) #Insert the new animation onto the end of the animations list
+
+    def setAnimation(self, animation):
+        self.currentAnimation = self.animations.index(animation) #Find the index of the given animation and set it to the currentAnimation 
+
     def addProjectile(self, p): #Simple method to add a projectile that is owned by the character
         self.projectiles.add(p)
 
@@ -89,7 +107,14 @@ class Character(pygame.sprite.Sprite):
         return self.rect.collidepoint(pygame.mouse.get_pos()) #Check to see if the mouse clicked on the character
 
     def draw(self, screen):
-        screen.blit(self.image, self.position)
+        #If the player is not animated
+        if not self.animated: #Put the player on the screen
+            screen.blit(self.image, self.position)
+        else: #Otherwise put the current animation on the screen
+            self.animations[self.currentAnimation].position = self.position
+            self.animations[self.currentAnimation].draw(screen)
+            self.mask = self.animations[self.currentAnimation].mask
+        #Always draw projectiles   
         for p in self.projectiles:
             screen.blit(p.image, p.position) #Display each projectile
             #Remove the projectiles if they travel off screen
@@ -97,7 +122,7 @@ class Character(pygame.sprite.Sprite):
                 self.projectiles.remove(p)
             elif p.position.y > SCREEN_HEIGHT or p.position.y < -p.rect.height:
                 self.projectiles.remove(p)
-            p.move()
+            p.move() #Move each projectile by it's assigned velocity
 
     def setSpeed(self, speed):
         self.speed = speed
@@ -117,6 +142,7 @@ class Character(pygame.sprite.Sprite):
         #The collide mask function allows for pixel perfect collision without performance hits
         return pygame.sprite.collide_mask(self, other)  #Returns the location relative to the character's origin of where the collision occured
 
+        
     def projectilesCollideWith(self, other):
         for p in self.projectiles:
             if p.collidesWith(other):
@@ -147,7 +173,9 @@ class Level():
     '''A class for each level in your game'''
     def __init__(self, screen, background, sprites=[]):
         self.sprites = pygame.sprite.Group() #Sprite Group for every sprite in the level
+        #Surround in a try except to catch File Not Found
         self.background = pygame.image.load("./images/"+background).convert()
+        #
         self.background = pygame.transform.scale(self.background, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.texts = []
         self.screen = screen
@@ -201,4 +229,51 @@ class Sound(pygame.mixer.Sound):
     def getVolume(self):
         return self.get_volume()
     #Don't forget about the fadeout method, which could be useful in each game
+
+#TODO Implement Animation class based on 2D sprite sheets
+class Animation():
+    #Note that spritesheets must be a single row
+    def __init__(self, spritesheet, rows, cols, fps=12):
+        self.spritesheet = pygame.image.load("./images/"+spritesheet).convert_alpha() #Load the spritesheet in and allow for transparency
+        self.position = pygame.Vector2() #This should be inherited from the parent, might need to adjust later
+        self.frames = [] #Container for each frame from the spritesheet
+        self.masks = [] #Container for each frame's mask to maintain pixel perfect collision
+        self.currentFrame = 0 #Keeps track of which frame we're at in the spritesheet
+        self.rows = rows 
+        self.cols = cols
+        self.totalFrames = self.rows*self.cols #Calculating total amount of frames
+        self.frameWidth = self.spritesheet.get_width()/cols #Calculating width of a single frame
+        self.frameHeight = self.spritesheet.get_height()/rows #Calculating height of a single frame
+        self.frameTime = 1000/fps #This is the amount of time that a frame will play for
+        self.timer = Timer()
+        self.timer.start()
+        self.splitSpriteSheet() #Populates frames list with each individual frame from the sheet
+        self.image = self.frames[0]
+        self.mask = self.masks[0]
+
+    def splitSpriteSheet(self): #Used to populate the frames list with individual frames from the sheet
+        #Go through each row and column
+        for row in range(self.rows):
+            for col in range(self.cols):
+                #Adjust the starting location
+                x = col * self.frameWidth
+                y = row * self.frameHeight
+                #Create the appropriate rectangle to cut out of the spritesheet
+                frameRect = pygame.Rect(x, y, self.frameWidth, self.frameHeight) 
+                frame = self.spritesheet.subsurface(frameRect)
+                self.frames.append(frame)
+                self.masks.append(pygame.mask.from_surface(frame))
     
+    def draw(self, screen):
+        screen.blit(self.image, self.position)
+        #If the correct amount of time has passed
+        if self.timer.timeInMilliseconds() > self.frameTime:
+            #Advance to the next frame in the animation
+            self.currentFrame += 1
+            self.timer.restart() #Restart the timer after we advance a frame
+            #Loop back to the first frame if we've played the whole animation
+            if self.currentFrame >= self.totalFrames:
+                self.currentFrame = 0
+        self.image = self.frames[self.currentFrame]
+        self.mask = self.masks[self.currentFrame]
+        self.rect = self.image.get_rect()
