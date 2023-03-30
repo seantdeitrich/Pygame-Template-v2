@@ -59,7 +59,12 @@ class MouseProjectile(pygame.sprite.Sprite):
     def move(self):
         velocity = self.direction * self.speed
         self.position += velocity
-    
+        self.rect.x = self.position.x
+        self.rect.y = self.position.y
+
+    def collidesWith(self, other):
+        return pygame.sprite.collide_mask(self, other)  #Returns the location relative to the projectile's origin of where the collision occured
+
 class Character(pygame.sprite.Sprite):
     '''A class for characters in your game'''
     def __init__(self, image, size, position):
@@ -77,8 +82,11 @@ class Character(pygame.sprite.Sprite):
         #Accessible positions on the Character
         self.__update_positions()
     
-    def addProjectile(self, p): #Simple method to add a projectile to the level
+    def addProjectile(self, p): #Simple method to add a projectile that is owned by the character
         self.projectiles.add(p)
+
+    def clicked(self):
+        return self.rect.collidepoint(pygame.mouse.get_pos()) #Check to see if the mouse clicked on the character
 
     def draw(self, screen):
         screen.blit(self.image, self.position)
@@ -91,7 +99,7 @@ class Character(pygame.sprite.Sprite):
                 self.projectiles.remove(p)
             p.move()
 
-    def set_speed(self, speed):
+    def setSpeed(self, speed):
         self.speed = speed
 
     def set_position(self, x, y):
@@ -109,9 +117,14 @@ class Character(pygame.sprite.Sprite):
         #The collide mask function allows for pixel perfect collision without performance hits
         return pygame.sprite.collide_mask(self, other)  #Returns the location relative to the character's origin of where the collision occured
 
+    def projectilesCollideWith(self, other):
+        for p in self.projectiles:
+            if p.collidesWith(other):
+                p.kill() #Remove the projectile when it collides with other
+                return True #Return True because a collision occured
+    
     #Create easy positions for each character
     def __update_positions(self):
-        self.rect = self.image.get_rect() #Update the hitbox/rect when the player moves (might not be needed)
         self.rect.x = self.position.x
         self.rect.y = self.position.y
         self.center = pygame.math.Vector2(self.position.x + self.rect.width/2, self.position.y + self.rect.height/2)
@@ -174,3 +187,18 @@ class Game():
     
     def run(self): #Method to display the current level / run the game
         self.currentLevel.display()
+
+class Sound(pygame.mixer.Sound):
+    #Since this class extends the pygame Sound class, we have access to the following methods:
+    #play(), stop(), fadeout(), set_volume(), get_volume()
+    def __init__(self, filename):
+        pygame.mixer.Sound.__init__(self, "./sounds/"+filename)
+    def loop(self):
+        self.play(-1)
+    #Made this for naming consistency on all methods
+    def setVolume(self, volume):
+        self.set_volume(volume)
+    def getVolume(self):
+        return self.get_volume()
+    #Don't forget about the fadeout method, which could be useful in each game
+    
