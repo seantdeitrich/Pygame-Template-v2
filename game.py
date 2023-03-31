@@ -40,9 +40,10 @@ clock = pygame.time.Clock()
 # ▲▲▲ DO NOT ADJUST THIS CODE ▲▲▲
 #----------------------------------------------------------------------------
 #----------------------------------------------------------------------------
-# Create Score, Health, Ammo, Etc. Variables Here
+# Create Score, Health, Ammo, and Other Variables Here
 #----------------------------------------------------------------------------
 score = 0
+playerpickedup = False
 
 #----------------------------------------------------------------------------
 # Create Text Boxes Here
@@ -54,7 +55,6 @@ titleText = Text(screen, "PyGame Template by: " + NAME, BLACK, 30,100,100)
 # Create Spritesheets and Animations here
 #----------------------------------------------------------------------------
 walking = Animation("walking.png", 1, 24) #Filename, Rows, Cols (You can add another number (1-60) to control the speed of the animation)
-walking.position = pygame.Vector2()
 #----------------------------------------------------------------------------
 # Create Sounds and Music Here
 #----------------------------------------------------------------------------
@@ -72,12 +72,10 @@ level1Background = "landscape.jpg"
 player = Character("Hero.png", (100,100), (100,100)) #Image, (Width, Height), (X,Y)
 player.setSpeed(5) #Set the speed of the character when we control it
 player.addAnimation(walking)
-player.animated = True
+#player.animated = True
 
 monster = Character("Monster.png", (100,100), (300,300))
 monster.setSpeed(5)
-#TODO Enemy Example
-#TODO Item Example
 
 #----------------------------------------------------------------------------
 # LEVELS: Create Levels Here
@@ -127,6 +125,7 @@ def titleControls():
                 timer.start() #Start the timer
 
 def level1Controls(keys_pressed):
+    global playerpickedup #Tells this level to use the playerpickedup variable at the top of the code
     direction = pygame.math.Vector2() #Allows the player to have a direction
     for event in pygame.event.get(): #Check to see whats happening in the game
         checkQuit(event) #Check to see if the user quit the game, should be in every level
@@ -138,25 +137,36 @@ def level1Controls(keys_pressed):
                 newProjectile = MouseProjectile("laser.png", player.center, 10) #image, position, speed
                 player.addProjectile(newProjectile) #Add the projectile to the player 
                 laserSound.play() #Play the laser sound
+
         #----------------------------------------------------------------------------
         # MOUSE: Check to see if things were clicked on here!
         #----------------------------------------------------------------------------
         if event.type == pygame.MOUSEBUTTONDOWN:
             if player.clicked():
-                print("Player was Clicked!")
-
+                playerpickedup = True
+        #----------------------------------------------------------------------------
+        # MOUSE: Check to see if the mouse button was released here!
+        #----------------------------------------------------------------------------
+        if event.type == pygame.MOUSEBUTTONUP:
+            playerpickedup = False
     #----------------------------------------------------------------------------
     # KEYS: Check to see if keys are HELD here!
     #----------------------------------------------------------------------------  
     #This method is used to check to see when keys are HELD
     if keys_pressed[pygame.K_d]:
         direction.x = 1
+        player.flipHorizontal(False)
     if keys_pressed[pygame.K_a]:
         direction.x = -1
+        player.flipHorizontal(True)
     if keys_pressed[pygame.K_w]:
         direction.y = -1
     if keys_pressed[pygame.K_s]:
         direction.y = 1
+
+    #If the player is picked up, match it's position to the mouse position
+    if playerpickedup:
+        player.position = pygame.Vector2(pygame.mouse.get_pos())
 
     #Enable movement for the player based on the direction
     player.move(direction)

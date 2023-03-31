@@ -2,6 +2,7 @@ import pygame
 import math
 import pygame.math
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT
+
 class Text():
     def __init__(self, screen, text, color, size, x=0, y=0):
         self.screen = screen
@@ -69,22 +70,27 @@ class MouseProjectile(pygame.sprite.Sprite):
         self.rect.x = self.position.x
         self.rect.y = self.position.y
 
+    #Collision Performance Note:
+    #Generally what you will want to do is check if two sprites have colliding rects 
+    #Then only if this test is positive do you check the masks.
+
     def collidesWith(self, other):
-        return pygame.sprite.collide_mask(self, other)  #Returns the location relative to the projectile's origin of where the collision occured
+        if pygame.sprite.collide_rect(self, other): #If the rectangles are overlapping
+            return pygame.sprite.collide_mask(self, other)  #Returns the location relative to the projectile's origin of where the collision occured
 
 class Character(pygame.sprite.Sprite):
     '''A class for characters in your game'''
     def __init__(self, image, size, position):
         pygame.sprite.Sprite.__init__(self)
-        #Surround in a try except to catch File Not Found
         self.image = pygame.image.load("./images/"+image).convert_alpha()
-        #
         self.animated = False #Boolean for whether the character is animated or not
         self.image = pygame.transform.scale(self.image, size) #Scaling to the given size
         self.position = pygame.math.Vector2(position[0],position[1]) #Changing position into a vector
         self.mask = pygame.mask.from_surface(self.image) #Helps improve performance of mask collision, needs to be updated when scaled or on image change
         self.rect = self.image.get_rect() #Acquiring the rectangle around the character
         self.speed = 10 #Speed variable
+        self.fliph = False
+        self.flipv = False
         self.size = size
         self.width = size[0]
         self.height = size[1]
@@ -94,6 +100,21 @@ class Character(pygame.sprite.Sprite):
         #Update accessible positions on the Character
         self.__update_positions()
     
+    #Allows flipping the sprite
+    #Needs to work for animations as well, and their masks
+    #Also, redo the mask for pixel perfect collision after flip
+    def flipHorizontal(self, bool):
+        if self.fliph != bool: #If there is a difference from how the image is currently flipped
+            self.fliph = bool
+            self.image = pygame.transform.flip(self.image, True, False) #Flip the image
+            self.mask = pygame.mask.from_surface(self.image) #Update the mask
+
+    def flipVertical(self, bool):
+        if self.flipv != bool: #if there is a difference from how the image is currently flipped
+            self.flipv = bool
+            self.image = pygame.transform.flip(self.image, False, True) #Flip the image
+            self.mask = pygame.mask.from_surface(self.image) #Update the mask
+
     def addAnimation(self, animation):
         self.animations.append(animation) #Insert the new animation onto the end of the animations list
 
@@ -114,6 +135,7 @@ class Character(pygame.sprite.Sprite):
             self.animations[self.currentAnimation].position = self.position
             self.animations[self.currentAnimation].draw(screen)
             self.mask = self.animations[self.currentAnimation].mask
+            self.rect = self.animations[self.currentAnimation].rect
         #Always draw projectiles   
         for p in self.projectiles:
             screen.blit(p.image, p.position) #Display each projectile
@@ -123,6 +145,12 @@ class Character(pygame.sprite.Sprite):
             elif p.position.y > SCREEN_HEIGHT or p.position.y < -p.rect.height:
                 self.projectiles.remove(p)
             p.move() #Move each projectile by it's assigned velocity
+        
+        self.drawMask()
+
+    def drawMask(self):
+        olist = self.mask.outline()
+        pygame.draw.lines(self.image,(255, 255, 255),True,olist)
 
     def setSpeed(self, speed):
         self.speed = speed
@@ -138,9 +166,21 @@ class Character(pygame.sprite.Sprite):
             self.position += velocity #Shift the players position by the calculated velocity
         self.__update_positions() #Anytime the character moves, update the rectangle and positions as well
     
+    def moveWithSpeed(self, direction, speed):
+        if direction.length() != 0: #If the player has a direction
+            direction = direction.normalize() #Normalize the direction
+            velocity = direction * speed #Multiply by speed
+            self.position += velocity #Shift the players position by the calculated velocity
+        self.__update_positions() #Anytime the character moves, update the rectangle and positions as well
+    
+    #Collision Performance Note:
+    #Generally what you will want to do is check if two sprites have colliding rects 
+    #Then only if this test is positive do you check the masks.
+
     def collidesWith(self, other):
         #The collide mask function allows for pixel perfect collision without performance hits
-        return pygame.sprite.collide_mask(self, other)  #Returns the location relative to the character's origin of where the collision occured
+        if pygame.sprite.collide_rect(self, other):
+            return pygame.sprite.collide_mask(self, other)  #Returns the location relative to the character's origin of where the collision occured
 
         
     def projectilesCollideWith(self, other):
@@ -230,7 +270,6 @@ class Sound(pygame.mixer.Sound):
         return self.get_volume()
     #Don't forget about the fadeout method, which could be useful in each game
 
-#TODO Implement Animation class based on 2D sprite sheets
 class Animation():
     #Note that spritesheets must be a single row
     def __init__(self, spritesheet, rows, cols, fps=12):
@@ -250,6 +289,7 @@ class Animation():
         self.splitSpriteSheet() #Populates frames list with each individual frame from the sheet
         self.image = self.frames[0]
         self.mask = self.masks[0]
+        self.rect = 0
 
     def splitSpriteSheet(self): #Used to populate the frames list with individual frames from the sheet
         #Go through each row and column
