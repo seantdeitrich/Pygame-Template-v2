@@ -72,7 +72,8 @@ level1Background = "landscape.jpg"
 player = Character("Hero.png", (100,100), (100,100)) #Image, (Width, Height), (X,Y)
 player.setSpeed(5) #Set the speed of the character when we control it
 player.addAnimation(walking)
-#player.animated = True
+player.animated = True
+#player.enableGravity() //TODO: This code does not work yet
 
 monster = Character("Monster.png", (100,100), (300,300))
 monster.setSpeed(5)

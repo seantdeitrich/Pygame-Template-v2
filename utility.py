@@ -89,6 +89,9 @@ class Character(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image) #Helps improve performance of mask collision, needs to be updated when scaled or on image change
         self.rect = self.image.get_rect() #Acquiring the rectangle around the character
         self.speed = 10 #Speed variable
+        self.velocity = pygame.Vector2()
+        self.gravityEnabled = False
+        self.gravity = 1
         self.fliph = False
         self.flipv = False
         self.size = size
@@ -115,6 +118,12 @@ class Character(pygame.sprite.Sprite):
             self.image = pygame.transform.flip(self.image, False, True) #Flip the image
             self.mask = pygame.mask.from_surface(self.image) #Update the mask
 
+    def enableGravity(self):
+        self.gravityEnabled = True
+
+    def disableGravity(self):
+        self.gravityEnabled = False
+
     def addAnimation(self, animation):
         self.animations.append(animation) #Insert the new animation onto the end of the animations list
 
@@ -133,9 +142,9 @@ class Character(pygame.sprite.Sprite):
             screen.blit(self.image, self.position)
         else: #Otherwise put the current animation on the screen
             self.animations[self.currentAnimation].position = self.position
-            self.animations[self.currentAnimation].draw(screen)
-            self.mask = self.animations[self.currentAnimation].mask
+            self.image = self.animations[self.currentAnimation].image
             self.rect = self.animations[self.currentAnimation].rect
+            self.animations[self.currentAnimation].draw(screen)
         #Always draw projectiles   
         for p in self.projectiles:
             screen.blit(p.image, p.position) #Display each projectile
@@ -145,8 +154,6 @@ class Character(pygame.sprite.Sprite):
             elif p.position.y > SCREEN_HEIGHT or p.position.y < -p.rect.height:
                 self.projectiles.remove(p)
             p.move() #Move each projectile by it's assigned velocity
-        
-        self.drawMask()
 
     def drawMask(self):
         olist = self.mask.outline()
@@ -162,10 +169,11 @@ class Character(pygame.sprite.Sprite):
     def move(self, direction):
         if direction.length() != 0: #If the player has a direction
             direction = direction.normalize() #Normalize the direction
-            velocity = direction * self.speed #Multiply by speed
-            self.position += velocity #Shift the players position by the calculated velocity
-        self.__update_positions() #Anytime the character moves, update the rectangle and positions as well
-    
+            self.velocity = direction * self.speed #Multiply by speed
+            self.position += self.velocity #Shift the players position by the calculated velocity
+            self.__update_positions() #Anytime the character moves, update the rectangle and positions as well
+
+
     def moveWithSpeed(self, direction, speed):
         if direction.length() != 0: #If the player has a direction
             direction = direction.normalize() #Normalize the direction
@@ -288,8 +296,7 @@ class Animation():
         self.timer.start()
         self.splitSpriteSheet() #Populates frames list with each individual frame from the sheet
         self.image = self.frames[0]
-        self.mask = self.masks[0]
-        self.rect = 0
+        self.rect = self.image.get_rect()
 
     def splitSpriteSheet(self): #Used to populate the frames list with individual frames from the sheet
         #Go through each row and column
@@ -315,5 +322,11 @@ class Animation():
             if self.currentFrame >= self.totalFrames:
                 self.currentFrame = 0
         self.image = self.frames[self.currentFrame]
-        self.mask = self.masks[self.currentFrame]
         self.rect = self.image.get_rect()
+        #self.drawMask()
+
+    def drawMask(self): #Debug Purposes
+        olist = pygame.mask.from_surface(self.image).outline()
+        pygame.draw.lines(self.image,(255, 255, 255),True,olist)
+
+    
