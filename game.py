@@ -40,64 +40,12 @@ clock = pygame.time.Clock()
 # ▲▲▲ DO NOT ADJUST THIS CODE ▲▲▲
 #----------------------------------------------------------------------------
 #----------------------------------------------------------------------------
-# Create Score, Health, Ammo, and Other Variables Here
-#----------------------------------------------------------------------------
-score = 0
-playerpickedup = False
-
-#----------------------------------------------------------------------------
-# Create Text Boxes Here
-#----------------------------------------------------------------------------
-#This creates a text box, but you'll have to add it to the level you want
-titleText = Text(screen, "PyGame Template by: " + NAME, BLACK, 30,100,100)
-
-#----------------------------------------------------------------------------
-# Create Spritesheets and Animations here
-#----------------------------------------------------------------------------
-walking = Animation("walking.png", 1, 24) #Filename, Rows, Cols (You can add another number (1-60) to control the speed of the animation)
-#----------------------------------------------------------------------------
-# Create Sounds and Music Here
-#----------------------------------------------------------------------------
-#Make sure the wav or mp3 file is in the sounds folder!
-laserSound = Sound("laser.wav") #This creates a sound, but doesn't play it - you'll see that later in the code
-
-#----------------------------------------------------------------------------
-# Create Backgrounds Here
+# Title Screen
 #----------------------------------------------------------------------------
 titleScreenBackground = "background.jpg"
-level1Background = "landscape.jpg"
-#----------------------------------------------------------------------------
-# Create Objects, Characters, Enemies, etc. Here
-#----------------------------------------------------------------------------
-player = Character("Hero.png", (100,100), (100,100)) #Image, (Width, Height), (X,Y)
-player.setSpeed(5) #Set the speed of the character when we control it
-player.addAnimation(walking)
-player.animated = True
-#player.enableGravity() //TODO: This code does not work yet
-
-monster = Character("Monster.png", (100,100), (300,300))
-monster.setSpeed(5)
-
-#----------------------------------------------------------------------------
-# LEVELS: Create Levels Here
-#----------------------------------------------------------------------------
-#Step 1. Create the Level itself
 titleScreen = Level(screen, titleScreenBackground)
-titleScreen.addText(titleText) #Add text to it if you want
-
-#Here's another example
-level1 = Level(screen, level1Background)
-#Then add Characters, Enemies, etc. to the level! The order matters.
-#What you add first will be the furthest 'back'.
-#What you add last will be the closes to the 'front'.
-level1.add(monster)
-level1.add(player)
-
-
-#----------------------------------------------------------------------------
-# TIMERS: Create Additional Timers Here if Needed
-#----------------------------------------------------------------------------
-timer = Timer()
+titleText = Text(screen, "PyGame Template by: " + NAME, BLACK, 30,100,100)
+titleScreen.addText(titleText) 
 
 #----------------------------------------------------------------------------
 # ▼▼▼ DO NOT ADJUST THIS CODE ▼▼▼ 
@@ -106,6 +54,7 @@ game = Game(titleScreen) #Create a game with the starting level as titleScreen
 gameRunning = True #Ensure the game is running
 
 def checkQuit(event):
+    global gameRunning
     if event.type == pygame.QUIT: #If the close (X) button is pressed
         gameRunning = False #The game ends
         pygame.quit() #PyGame Quits
@@ -113,7 +62,34 @@ def checkQuit(event):
 #----------------------------------------------------------------------------
 # ▲▲▲ DO NOT ADJUST THIS CODE ▲▲▲ 
 #----------------------------------------------------------------------------
+#----------------------------------------------------------------------------
+# Level 1
+#----------------------------------------------------------------------------
+level1Background = "landscape.jpg" #Background for level 1
 
+score = 0 #This is a variable called 'score' that starts at 0 in level 1. We can change it to keep track of the score.
+playerpickedup = False #This variable keeps track of whether or not the player is picked up with the mouse
+
+player = Character("Hero.png", (100,100), (100,100)) #Image, (Width, Height), (X,Y)
+player.setSpeed(5) #Set the speed of the character when we control it
+walking = Animation("walking.png", 1, 24) #Filename, Rows, Cols (You can add another number (1-60) to control the speed of the animation)
+player.addAnimation(walking)
+player.animated = True 
+
+laserSound = Sound("laser.wav") #This creates a sound, but doesn't play it - you'll see that later in the code
+
+monster = Character("Monster.png", (100,100), (300,300)) #This creates a monster character with a size of (100,100) and position (300,300)
+monster.setSpeed(5) #Sets the speed of the monster when it moves
+
+#Creates the actual level
+level1 = Level(screen, level1Background)
+
+#Adds the monster and the player to level 1
+level1.add(monster)
+level1.add(player)
+
+#Creates a usable timer that can start, stop, and reset
+timer = Timer()
 #----------------------------------------------------------------------------
 # LEVEL CONTROLS: Create Controls and Logic for Each Level Here
 #----------------------------------------------------------------------------
@@ -126,8 +102,7 @@ def titleControls():
                 timer.start() #Start the timer
 
 def level1Controls(keys_pressed):
-    global playerpickedup #Tells this level to use the playerpickedup variable at the top of the code
-    direction = pygame.math.Vector2() #Allows the player to have a direction
+    global score, playerpickedup #Tells this level to use the score and playerpickedup variables at the top of the code
     for event in pygame.event.get(): #Check to see whats happening in the game
         checkQuit(event) #Check to see if the user quit the game, should be in every level
         #----------------------------------------------------------------------------
@@ -135,7 +110,7 @@ def level1Controls(keys_pressed):
         #----------------------------------------------------------------------------
         if event.type == pygame.KEYDOWN: #When any key is pressed down
             if event.key == pygame.K_SPACE: #If it was the space key
-                newProjectile = MouseProjectile("laser.png", player.center, 10) #image, position, speed
+                newProjectile = MouseProjectile("laser.png", player.top, 10) #image, position, speed
                 player.addProjectile(newProjectile) #Add the projectile to the player 
                 laserSound.play() #Play the laser sound
 
@@ -154,6 +129,7 @@ def level1Controls(keys_pressed):
     # KEYS: Check to see if keys are HELD here!
     #----------------------------------------------------------------------------  
     #This method is used to check to see when keys are HELD
+    direction = pygame.math.Vector2() #Allows the player to have a direction
     if keys_pressed[pygame.K_d]:
         direction.x = 1
         player.flipHorizontal(False)
@@ -165,17 +141,18 @@ def level1Controls(keys_pressed):
     if keys_pressed[pygame.K_s]:
         direction.y = 1
 
-    #If the player is picked up, match it's position to the mouse position
-    if playerpickedup:
-        player.position = pygame.Vector2(pygame.mouse.get_pos())
-
     #Enable movement for the player based on the direction
     player.move(direction)
     
+    #If the player is picked up, match it's position to the mouse position
+    if playerpickedup:
+        offset = pygame.Vector2(player.width/2, player.height/2)
+        player.setPosition(pygame.Vector2(pygame.mouse.get_pos()) - offset)
+
     #Check for collision between the player and the monster
     if player.collidesWith(monster):
         print("Player is Colliding with Monster!")
-    #Check for collision between any of the player projectiles and the monster
+    #Check for collision between any of the player's projectiles and the monster
     if player.projectilesCollideWith(monster):
         print("Projectile Collided with Monster!")
     

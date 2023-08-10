@@ -13,7 +13,7 @@ class Text():
     def draw(self):
         self.screen.blit(self.text, self.position)
 
-    def set_position(self, x, y):
+    def setPosition(self, x, y):
         self.position = [x,y]
 
 class Timer():
@@ -107,10 +107,15 @@ class Character(pygame.sprite.Sprite):
     #Needs to work for animations as well, and their masks
     #Also, redo the mask for pixel perfect collision after flip
     def flipHorizontal(self, bool):
-        if self.fliph != bool: #If there is a difference from how the image is currently flipped
-            self.fliph = bool
-            self.image = pygame.transform.flip(self.image, True, False) #Flip the image
-            self.mask = pygame.mask.from_surface(self.image) #Update the mask
+        if self.fliph != bool:
+            if self.animated:
+                for animation in self.animations:
+                    animation.flipHorizontal()
+                self.fliph = bool
+            else:    
+                self.fliph = bool
+                self.image = pygame.transform.flip(self.image, self.fliph, False) #Flip the image
+                self.mask = pygame.mask.from_surface(self.image) #Update the mask
 
     def flipVertical(self, bool):
         if self.flipv != bool: #if there is a difference from how the image is currently flipped
@@ -162,8 +167,8 @@ class Character(pygame.sprite.Sprite):
     def setSpeed(self, speed):
         self.speed = speed
 
-    def set_position(self, x, y):
-        self.position = pygame.math.Vector2(x,y)
+    def setPosition(self, position):
+        self.position = position
         self.__update_positions()
 
     def move(self, direction):
@@ -210,6 +215,7 @@ class Character(pygame.sprite.Sprite):
         self.topright = pygame.math.Vector2(self.position.x + self.rect.width, self.position.y)
         self.bottomleft = pygame.math.Vector2(self.position.x, self.position.y + self.rect.height)
         self.bottomright = pygame.math.Vector2(self.position.x + self.rect.width, self.position.y + self.rect.height)
+        self.mask = pygame.mask.from_surface(self.image) #Helps improve performance of mask collision, needs to be updated when scaled or on image change
 
 class Camera():
     '''Allows use of a camera within a level'''
@@ -252,7 +258,7 @@ class Level():
             text.draw()
         #Draw all sprites to the screen
         for sprite in self.sprites:
-            sprite.draw(self.screen) 
+            sprite.draw(self.screen)
 
 class Game():
     def __init__(self, startingLevel): #Begin on the startingLevel
@@ -311,6 +317,11 @@ class Animation():
                 self.frames.append(frame)
                 self.masks.append(pygame.mask.from_surface(frame))
     
+    def flipHorizontal(self):
+        for i in range(len(self.frames)):
+            self.frames[i] = pygame.transform.flip(self.frames[i], True, False)
+            
+
     def draw(self, screen):
         screen.blit(self.image, self.position)
         #If the correct amount of time has passed
@@ -329,4 +340,5 @@ class Animation():
         olist = pygame.mask.from_surface(self.image).outline()
         pygame.draw.lines(self.image,(255, 255, 255),True,olist)
 
-    
+    def scale(self):
+        pass
