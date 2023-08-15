@@ -74,7 +74,7 @@ player = Character("Hero.png", (100,100), (100,100)) #Image, (Width, Height), (X
 player.setSpeed(5) #Set the speed of the character when we control it
 walking = Animation("walking.png", 1, 24) #Filename, Rows, Cols (You can add another number (1-60) to control the speed of the animation)
 player.addAnimation(walking)
-player.animated = True 
+player.animated = True #This allows the player to use their animation
 
 laserSound = Sound("laser.wav") #This creates a sound, but doesn't play it - you'll see that later in the code
 
@@ -93,7 +93,7 @@ timer = Timer()
 #----------------------------------------------------------------------------
 # LEVEL CONTROLS: Create Controls and Logic for Each Level Here
 #----------------------------------------------------------------------------
-def titleControls():
+def titleLogic():
     for event in pygame.event.get(): #Check to see whats happening in the game
         checkQuit(event) #Check to see if the user quit the game, should be in every level
         if event.type == pygame.KEYDOWN: #When any key is pressed down
@@ -101,7 +101,7 @@ def titleControls():
                 game.setLevel(level1) #Change the game to level1
                 timer.start() #Start the timer
 
-def level1Controls(keys_pressed):
+def level1Logic(keys_pressed):
     global score, playerpickedup #Tells this level to use the score and playerpickedup variables at the top of the code
     for event in pygame.event.get(): #Check to see whats happening in the game
         checkQuit(event) #Check to see if the user quit the game, should be in every level
@@ -113,7 +113,6 @@ def level1Controls(keys_pressed):
                 newProjectile = MouseProjectile("laser.png", player.top, 10) #image, position, speed
                 player.addProjectile(newProjectile) #Add the projectile to the player 
                 laserSound.play() #Play the laser sound
-
         #----------------------------------------------------------------------------
         # MOUSE: Check to see if things were clicked on here!
         #----------------------------------------------------------------------------
@@ -146,9 +145,7 @@ def level1Controls(keys_pressed):
     
     #If the player is picked up, match it's position to the mouse position
     if playerpickedup:
-        offset = pygame.Vector2(player.width/2, player.height/2)
-        player.setPosition(pygame.Vector2(pygame.mouse.get_pos()) - offset)
-
+        player.setPosition(pygame.Vector2(pygame.mouse.get_pos()))
     #Check for collision between the player and the monster
     if player.collidesWith(monster):
         print("Player is Colliding with Monster!")
@@ -156,6 +153,7 @@ def level1Controls(keys_pressed):
     if player.projectilesCollideWith(monster):
         print("Projectile Collided with Monster!")
     
+    #level1.background.scroll(-1,0) #Scrolling background
 #----------------------------------------------------------------------------
 # ▼▼▼ DO NOT ADJUST THIS CODE ▼▼▼ 
 #----------------------------------------------------------------------------
@@ -171,9 +169,9 @@ while gameRunning: #While the game is running
 # Input Processing for Each Level Goes Here 
 #----------------------------------------------------------------------------
     if game.currentLevel == titleScreen:
-        titleControls()
+        titleLogic()
     elif game.currentLevel == level1:
-        level1Controls(keys_pressed)
+        level1Logic(keys_pressed)
 
 #----------------------------------------------------------------------------
 # ▼▼▼ DO NOT ADJUST THIS CODE ▼▼▼ 

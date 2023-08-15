@@ -133,13 +133,14 @@ class Character(pygame.sprite.Sprite):
         self.animations.append(animation) #Insert the new animation onto the end of the animations list
 
     def setAnimation(self, animation):
+        #This should be adjusted to use key/value pairs instead of an index
         self.currentAnimation = self.animations.index(animation) #Find the index of the given animation and set it to the currentAnimation 
 
     def addProjectile(self, p): #Simple method to add a projectile that is owned by the character
         self.projectiles.add(p)
 
-    def clicked(self):
-        return self.rect.collidepoint(pygame.mouse.get_pos()) #Check to see if the mouse clicked on the character
+    def clicked(self): #Use this method in the mousedown method in the main game
+        return self.rect.collidepoint(pygame.mouse.get_pos()) #Check to see if the mouse clicked on the character's rect
 
     def draw(self, screen):
         #If the player is not animated
@@ -159,6 +160,9 @@ class Character(pygame.sprite.Sprite):
             elif p.position.y > SCREEN_HEIGHT or p.position.y < -p.rect.height:
                 self.projectiles.remove(p)
             p.move() #Move each projectile by it's assigned velocity
+    
+    def drawRect(self, screen):
+        pygame.draw.rect(screen, (255,255,255), self.rect)
 
     def drawMask(self):
         olist = self.mask.outline()
@@ -204,8 +208,6 @@ class Character(pygame.sprite.Sprite):
     
     #Create easy positions for each character
     def __update_positions(self):
-        self.rect.x = self.position.x
-        self.rect.y = self.position.y
         self.center = pygame.math.Vector2(self.position.x + self.rect.width/2, self.position.y + self.rect.height/2)
         self.left = pygame.math.Vector2(self.position.x, self.position.y + self.rect.height/2)
         self.right = pygame.math.Vector2(self.position.x + self.rect.width, self.position.y + self.rect.height/2)
@@ -216,6 +218,12 @@ class Character(pygame.sprite.Sprite):
         self.bottomleft = pygame.math.Vector2(self.position.x, self.position.y + self.rect.height)
         self.bottomright = pygame.math.Vector2(self.position.x + self.rect.width, self.position.y + self.rect.height)
         self.mask = pygame.mask.from_surface(self.image) #Helps improve performance of mask collision, needs to be updated when scaled or on image change
+        if self.animated:
+            self.animations[self.currentAnimation].rect.x = self.position.x
+            self.animations[self.currentAnimation].rect.y = self.position.y
+        else:
+            self.rect.x = self.position.x
+            self.rect.y = self.position.y
 
 class Camera():
     '''Allows use of a camera within a level'''
@@ -229,7 +237,6 @@ class Level():
         self.sprites = pygame.sprite.Group() #Sprite Group for every sprite in the level
         #Surround in a try except to catch File Not Found
         self.background = pygame.image.load("./images/"+background).convert()
-        #
         self.background = pygame.transform.scale(self.background, (SCREEN_WIDTH, SCREEN_HEIGHT))
         self.texts = []
         self.screen = screen
@@ -333,7 +340,7 @@ class Animation():
             if self.currentFrame >= self.totalFrames:
                 self.currentFrame = 0
         self.image = self.frames[self.currentFrame]
-        self.rect = self.image.get_rect()
+        #self.rect = self.image.get_rect()
         #self.drawMask()
 
     def drawMask(self): #Debug Purposes
